@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: #17121F;
+  color: #EDE7DA;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-md border border-black/15 bg-white px-3 py-2.5 text-ink outline-none transition;
+    color-scheme: light;
+  }
+  .input:focus {
+    @apply border-zari;
+    box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.15);
+  }
+  .input::placeholder { color: rgba(23, 18, 31, 0.35); }
+}
+
+/* Deters casual saving on the customer catalogue (not real security) */
+.no-save {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
