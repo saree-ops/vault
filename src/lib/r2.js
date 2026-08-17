@@ -5,7 +5,10 @@ export function mediaUrl(key) {
   const base = import.meta.env.VITE_R2_PUBLIC_BASE || ''
   return `${base}/${key}`
 }
-
+// Public catalogue image URL — routed through the watermark function.
+export function watermarkedUrl(key) {
+  return `/.netlify/functions/wm?key=${encodeURIComponent(key)}`
+}
 async function authToken() {
   const { data: { session } } = await supabase.auth.getSession()
   return session?.access_token

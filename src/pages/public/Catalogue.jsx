@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { mediaUrl } from '../../lib/r2'
+import { watermarkedUrl } from '../../lib/r2'
 import { BRAND_NAME } from '../../lib/constants'
 
 export default function Catalogue() {
@@ -129,7 +129,7 @@ function Card({ product, showPrice, onClick }) {
     <button onClick={onClick} className="group text-left">
       <div className="aspect-[3/4] w-full overflow-hidden rounded-sm bg-ivory">
         {cover ? (
-          <Photo url={mediaUrl(cover.r2_key)} className="h-full w-full transition duration-500 group-hover:scale-105" />
+          <Photo url={watermarkedUrl(cover.r2_key)} className="h-full w-full transition duration-500 group-hover:scale-105" />
         ) : (
           <div className="grid h-full place-items-center text-ink/30">No image</div>
         )}
@@ -159,7 +159,7 @@ function ProductModal({ product, showPrice, onClose }) {
       >
        <div className="flex flex-col bg-ivory md:w-1/2">
           <div className="h-80 w-full bg-contain bg-center bg-no-repeat md:h-[28rem]"
-            style={active ? { backgroundImage: `url("${mediaUrl(active.r2_key)}")` } : undefined} role="img">
+            style={active ? { backgroundImage: `url("${watermarkedUrl(active.r2_key)}")` } : undefined} role="img">
             {!active && <div className="grid h-full place-items-center text-ink/30">No image</div>}
           </div>
           {images.length > 1 && (
@@ -172,7 +172,7 @@ function ProductModal({ product, showPrice, onClose }) {
                     active?.r2_key === m.r2_key ? 'border-zari' : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <Photo url={mediaUrl(m.r2_key)} className="h-full w-full" />
+                  <Photo url={watermarkedUrl(m.r2_key)} className="h-full w-full" />
                 </button>
               ))}
             </div>
@@ -195,7 +195,7 @@ function ProductModal({ product, showPrice, onClose }) {
             {product.description && <p className="text-sm leading-relaxed text-ink/70">{product.description}</p>}
             {video && (
               <video
-                src={mediaUrl(video.r2_key)}
+                src={watermarkedUrl(video.r2_key)}
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture

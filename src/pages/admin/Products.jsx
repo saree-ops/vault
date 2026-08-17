@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { mediaUrl } from '../../lib/r2'
+import { downloadProductZip, downloadMany } from '../../lib/download'
 import { SAREE_TYPES } from '../../lib/constants'
 import AddProductModal from './AddProductModal'
 import ProductDetailModal from './ProductDetailModal'
@@ -32,6 +33,24 @@ export default function Products() {
 
   useEffect(() => { load() }, [])
 
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState(null)
+
+  async function downloadAll() {
+    if (bulkBusy) return
+    setBulkBusy(true)
+    setBulkProgress({ done: 0, total: 0 })
+    try {
+      const stamp = new Date().toISOString().slice(0, 10)
+      await downloadMany(products, `jenihouse-${stamp}`, (done, total) => setBulkProgress({ done, total }))
+    } catch (e) {
+      alert(e?.message || 'Download failed.')
+    } finally {
+      setBulkBusy(false)
+      setBulkProgress(null)
+    }
+  }
+
   const visible = useMemo(() => {
     let list = products
     if (filterType !== 'ALL') list = list.filter((p) => p.saree_type === filterType)
@@ -44,12 +63,23 @@ export default function Products() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h2 className="font-display text-3xl text-ink">Products</h2>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="rounded-md bg-ink px-4 py-2 text-sm font-medium uppercase tracking-widest text-parchment transition hover:bg-aubergine"
-        >
-          Add product
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={downloadAll}
+            disabled={bulkBusy}
+            className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium uppercase tracking-widest text-ink transition hover:border-zari disabled:opacity-50"
+          >
+            {bulkBusy
+              ? (bulkProgress && bulkProgress.total ? `Zipping ${bulkProgress.done}/${bulkProgress.total}` : 'Preparing…')
+              : 'Download all'}
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="rounded-md bg-ink px-4 py-2 text-sm font-medium uppercase tracking-widest text-parchment transition hover:bg-aubergine"
+          >
+            Add product
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -93,14 +123,21 @@ export default function Products() {
 }
 
 function ProductCard({ product, onClick }) {
+  const [dl, setDl] = useState(false)
   const media = [...(product.product_media || [])].sort((a, b) => a.sort_order - b.sort_order)
   const cover = media.find((m) => m.kind === 'image') || media[0]
   const imageCount = media.filter((m) => m.kind === 'image').length
 
+  async function handleDownload(e) {
+    e.stopPropagation()
+    setDl(true)
+    try { await downloadProductZip(product) } finally { setDl(false) }
+  }
+
   return (
-    <button
+    <div
       onClick={onClick}
-      className="group overflow-hidden rounded-md border border-black/5 bg-white text-left shadow-sm transition hover:shadow-md"
+      className="group relative cursor-pointer overflow-hidden rounded-md border border-black/5 bg-white shadow-sm transition hover:shadow-md"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-ivory">
         {cover ? (
@@ -114,12 +151,28 @@ function ProductCard({ product, onClick }) {
             {imageCount}
           </span>
         )}
+        <button
+          onClick={handleDownload}
+          disabled={dl}
+          title="Download this product"
+          className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-ink/60 text-parchment backdrop-blur-sm transition hover:bg-ink"
+        >
+          {dl ? (
+            <span className="text-xs">…</span>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          )}
+        </button>
       </div>
       <div className="p-3">
         <div className="font-medium text-ink">{product.design_number}</div>
         <div className="text-xs uppercase tracking-wide text-ink/50">{product.saree_type}</div>
         <div className="mt-1 text-sm text-ink">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
       </div>
-    </button>
+    </div>
   )
 }
