@@ -27,7 +27,9 @@ export default function Products() {
       .from('products')
       .select('id, design_number, saree_type, price_inr, description, created_at, product_media(kind, r2_key, sort_order)')
       .order('created_at', { ascending: false })
-    if (!error) setProducts(data || [])
+    // Guard against any null/undefined rows the API might ever hand back —
+    // one bad row must never take down the whole page.
+    if (!error) setProducts((data || []).filter(Boolean))
     setLoading(false)
   }
 
@@ -52,12 +54,12 @@ export default function Products() {
   }
 
   const visible = useMemo(() => {
-    let list = products
+    let list = products.filter(Boolean)
     if (filterType !== 'ALL') list = list.filter((p) => p.saree_type === filterType)
     return [...list].sort(SORTS[sortKey].fn)
   }, [products, filterType, sortKey])
 
-  const selectedProduct = useMemo(() => products.find((p) => p.id === selectedId) || null, [products, selectedId])
+  const selectedProduct = useMemo(() => products.find((p) => p && p.id === selectedId) || null, [products, selectedId])
 
   return (
     <div>
@@ -124,6 +126,10 @@ export default function Products() {
 
 function ProductCard({ product, onClick }) {
   const [dl, setDl] = useState(false)
+  // Guard: if a malformed/undefined product ever slips through, render nothing
+  // for that card instead of crashing the whole page.
+  if (!product) return null
+
   const media = [...(product.product_media || [])].sort((a, b) => a.sort_order - b.sort_order)
   const cover = media.find((m) => m.kind === 'image') || media[0]
   const imageCount = media.filter((m) => m.kind === 'image').length
