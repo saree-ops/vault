@@ -111,7 +111,7 @@ export default function Products() {
         </div>
       )}
 
-      {showAdd && <AddProductModal onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load() }} />}
+      {showAdd && <AddProductModal onClose={() => setShowAdd(false)} onSaved={load} />}
       {selectedProduct && (
         <ProductDetailModal
           product={selectedProduct}

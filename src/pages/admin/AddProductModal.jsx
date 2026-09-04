@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { uploadToR2 } from '../../lib/r2'
 import { SAREE_TYPES } from '../../lib/constants'
@@ -17,12 +17,15 @@ export default function AddProductModal({ onClose, onSaved }) {
   const [video, setVideo] = useState(null) // { file, url } | null
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [justSaved, setJustSaved] = useState('') // holds the design number just saved, for the confirmation line
+  const flashTimer = useRef(null)
 
-  // Revoke local preview URLs on unmount so we don't leak memory.
+  // Revoke any local preview URLs on unmount so we don't leak memory.
   useEffect(() => {
     return () => {
       images.forEach((i) => URL.revokeObjectURL(i.url))
       if (video) URL.revokeObjectURL(video.url)
+      if (flashTimer.current) clearTimeout(flashTimer.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -47,13 +50,25 @@ export default function AddProductModal({ onClose, onSaved }) {
     setVideo(null)
   }
 
+  function resetForm() {
+    setDesignNumber('')
+    setSareeType(SAREE_TYPES[0])
+    setPrice('')
+    setDescription('')
+    images.forEach((i) => URL.revokeObjectURL(i.url))
+    setImages([])
+    if (video) URL.revokeObjectURL(video.url)
+    setVideo(null)
+  }
+
   async function create() {
     if (!designNumber.trim()) return setError('Design number is required.')
-    setBusy(true); setError('')
+    setBusy(true); setError(''); setJustSaved('')
+    const savedLabel = designNumber.trim()
     try {
       // 1. Create the product row first — we need its id to build R2 keys.
       const { data: product, error: e } = await supabase.from('products').insert({
-        design_number: designNumber.trim(),
+        design_number: savedLabel,
         saree_type: sareeType,
         price_inr: price === '' ? 0 : Number(price),
         description: description.trim() || null,
@@ -81,6 +96,10 @@ export default function AddProductModal({ onClose, onSaved }) {
       }
 
       onSaved()
+      resetForm()
+      setBusy(false)
+      setJustSaved(savedLabel)
+      flashTimer.current = setTimeout(() => setJustSaved(''), 3000)
     } catch (err) {
       // Note: if upload/media-insert fails after the product row was created,
       // the product still exists (with partial or no media) — open it from the
@@ -109,6 +128,12 @@ export default function AddProductModal({ onClose, onSaved }) {
         </div>
 
         <div className="flex-1 space-y-4 overflow-auto px-6 py-5">
+          {justSaved && (
+            <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              ✓ Saved "{justSaved}". Form's cleared — add the next one.
+            </p>
+          )}
+
           <Field label="Design number">
             <input value={designNumber} onChange={(e) => setDesignNumber(e.target.value)} className="input" autoFocus />
           </Field>
@@ -180,13 +205,13 @@ export default function AddProductModal({ onClose, onSaved }) {
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-black/10 px-6 py-4">
-          <button onClick={onClose} disabled={busy} className="text-sm text-ink/60 transition hover:text-ink disabled:opacity-40">Cancel</button>
+          <button onClick={onClose} disabled={busy} className="text-sm text-ink/60 transition hover:text-ink disabled:opacity-40">Done</button>
           <button
             onClick={create}
             disabled={busy}
             className="rounded-md bg-zari px-6 py-2 text-sm font-medium uppercase tracking-widest text-ink transition hover:bg-zari-bright disabled:opacity-50"
           >
-            {busy ? 'Creating…' : 'Create product'}
+            {busy ? 'Saving…' : 'Save & add another'}
           </button>
         </div>
       </div>
