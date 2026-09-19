@@ -141,13 +141,26 @@ function ProductCard({ product, onClick }) {
     try { await downloadProductZip(product) } finally { setDl(false) }
   }
 
-  async function handleShare(e) {
+    async function handleShare(e) {
     e.stopPropagation()
-    await navigator.clipboard.writeText(`${window.location.origin}/p/${product.id}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    const url = `${window.location.origin}/p/${product.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.design_number, url })
+        return
+      } catch (err) {
+        if (err?.name === 'AbortError') return // user dismissed the sheet
+        // any other failure falls through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      /* clipboard blocked — nothing more we can do */
+    }
   }
-
   return (
     <div
       onClick={onClick}

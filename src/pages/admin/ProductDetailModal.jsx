@@ -32,10 +32,24 @@ export default function ProductDetailModal({ product, onClose, onChanged, onDele
   }, [images, activeKey])
   const active = images.find((m) => m.r2_key === activeKey) || images[0] || null
 
-    async function copyShareLink() {
-    await navigator.clipboard.writeText(`${window.location.origin}/p/${product.id}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+      async function copyShareLink() {
+    const url = `${window.location.origin}/p/${product.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.design_number, url })
+        return
+      } catch (err) {
+        if (err?.name === 'AbortError') return // user dismissed the sheet
+        // any other failure falls through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      /* clipboard blocked — nothing more we can do */
+    }
   }
 
   function enterEdit() {
@@ -163,7 +177,7 @@ export default function ProductDetailModal({ product, onClose, onChanged, onDele
                     onClick={copyShareLink}
                     className="inline-flex items-center gap-2 rounded-md border border-black/15 px-3 py-1.5 text-sm text-ink transition hover:border-zari"
                   >
-                    {copied ? 'Link copied!' : 'Copy share link'}
+                                        {copied ? 'Link copied!' : 'Share'}
                   </button>
                 </div>
               </>
