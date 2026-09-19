@@ -7,6 +7,7 @@ import Products from './pages/admin/Products'
 import Catalogues from './pages/admin/Catalogues'
 import CatalogueEditor from './pages/admin/CatalogueEditor'
 import Catalogue from './pages/public/Catalogue'
+import Product from './pages/public/Product'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           </Route>
 
           <Route path="/c/:slug" element={<Catalogue />} />
+          <Route path="/p/:id" element={<Product />} />
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

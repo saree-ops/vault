@@ -134,12 +134,12 @@ function Card({ product, showPrice, onClick }) {
           <div className="grid h-full place-items-center text-ink/30">No image</div>
         )}
       </div>
-      <div className="mt-2">
-        <div className="font-medium text-ink">{product.design_number}</div>
-        <div className="text-xs uppercase tracking-wide text-ink/40">{product.saree_type}</div>
+            <div className="mt-2">
+        <div className="text-sm font-semibold uppercase tracking-wide text-ink">{product.saree_type}</div>
         {showPrice && product.price_inr != null && (
-          <div className="mt-0.5 text-sm text-ink">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
+          <div className="mt-0.5 text-base font-medium text-ink">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
         )}
+        <div className="mt-1 text-xs uppercase tracking-wide text-ink/40">{product.design_number}</div>
       </div>
     </button>
   )

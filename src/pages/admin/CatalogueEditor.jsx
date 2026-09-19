@@ -171,9 +171,9 @@ function ProductToggle({ product, inCatalogue, onToggle }) {
           {inCatalogue ? '✓' : '+'}
         </div>
       </div>
-      <div className="p-2">
-        <div className="text-sm font-medium text-ink">{product.design_number}</div>
-        <div className="text-xs uppercase tracking-wide text-ink/50">{product.saree_type}</div>
+            <div className="p-2">
+        <div className="text-sm font-semibold uppercase tracking-wide text-ink">{product.saree_type}</div>
+        <div className="mt-0.5 text-xs uppercase tracking-wide text-ink/40">{product.design_number}</div>
       </div>
     </button>
   )

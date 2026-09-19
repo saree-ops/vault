@@ -16,8 +16,9 @@ export default function ProductDetailModal({ product, onClose, onChanged, onDele
   const [activeKey, setActiveKey] = useState(images[0]?.r2_key || null)
   const [editing, setEditing] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const [busy, setBusy] = useState(false)
+    const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const [designNumber, setDesignNumber] = useState('')
   const [sareeType, setSareeType] = useState(SAREE_TYPES[0])
@@ -30,6 +31,12 @@ export default function ProductDetailModal({ product, onClose, onChanged, onDele
     }
   }, [images, activeKey])
   const active = images.find((m) => m.r2_key === activeKey) || images[0] || null
+
+    async function copyShareLink() {
+    await navigator.clipboard.writeText(`${window.location.origin}/p/${product.id}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   function enterEdit() {
     setDesignNumber(product.design_number)
@@ -148,9 +155,17 @@ export default function ProductDetailModal({ product, onClose, onChanged, onDele
           <div className="flex-1 space-y-4 overflow-auto px-6 py-5">
             {!editing ? (
               <>
-                <div className="text-lg font-medium">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
+                               <div className="text-lg font-medium">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
                 {product.description && <p className="text-sm leading-relaxed text-ink/70">{product.description}</p>}
                 {video && <video src={mediaUrl(video.r2_key)} controls className="w-full rounded-md" />}
+                <div>
+                  <button
+                    onClick={copyShareLink}
+                    className="inline-flex items-center gap-2 rounded-md border border-black/15 px-3 py-1.5 text-sm text-ink transition hover:border-zari"
+                  >
+                    {copied ? 'Link copied!' : 'Copy share link'}
+                  </button>
+                </div>
               </>
             ) : (
               <>

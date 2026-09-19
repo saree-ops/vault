@@ -126,6 +126,7 @@ export default function Products() {
 
 function ProductCard({ product, onClick }) {
   const [dl, setDl] = useState(false)
+  const [copied, setCopied] = useState(false)
   // Guard: if a malformed/undefined product ever slips through, render nothing
   // for that card instead of crashing the whole page.
   if (!product) return null
@@ -138,6 +139,13 @@ function ProductCard({ product, onClick }) {
     e.stopPropagation()
     setDl(true)
     try { await downloadProductZip(product) } finally { setDl(false) }
+  }
+
+  async function handleShare(e) {
+    e.stopPropagation()
+    await navigator.clipboard.writeText(`${window.location.origin}/p/${product.id}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   return (
@@ -157,27 +165,48 @@ function ProductCard({ product, onClick }) {
             {imageCount}
           </span>
         )}
-        <button
-          onClick={handleDownload}
-          disabled={dl}
-          title="Download this product"
-          className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-ink/60 text-parchment backdrop-blur-sm transition hover:bg-ink"
-        >
-          {dl ? (
-            <span className="text-xs">…</span>
-          ) : (
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          )}
-        </button>
+        <div className="absolute left-2 top-2 flex gap-1.5">
+          <button
+            onClick={handleDownload}
+            disabled={dl}
+            title="Download this product"
+            className="grid h-8 w-8 place-items-center rounded-full bg-ink/60 text-parchment backdrop-blur-sm transition hover:bg-ink"
+          >
+            {dl ? (
+              <span className="text-xs">…</span>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={handleShare}
+            title="Copy share link"
+            className="grid h-8 w-8 place-items-center rounded-full bg-ink/60 text-parchment backdrop-blur-sm transition hover:bg-ink"
+          >
+            {copied ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
       <div className="p-3">
-        <div className="font-medium text-ink">{product.design_number}</div>
-        <div className="text-xs uppercase tracking-wide text-ink/50">{product.saree_type}</div>
-        <div className="mt-1 text-sm text-ink">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
+        <div className="text-sm font-semibold uppercase tracking-wide text-ink">{product.saree_type}</div>
+        <div className="mt-0.5 text-base font-medium text-ink">₹{Number(product.price_inr).toLocaleString('en-IN')}</div>
+        <div className="mt-1 text-xs uppercase tracking-wide text-ink/40">{product.design_number}</div>
       </div>
     </div>
   )
